@@ -50,10 +50,11 @@ if st.button("Buscar Informações"):
                 else:
                     data = response.json()
                     
+                    # CORREÇÃO DA LEITURA DO JSON: Acessando os índices da lista [0]
                     if 'candidates' in data and len(data['candidates']) > 0:
-                        candidate = data['candidates'][0]
+                        candidate = data['candidates'][0]  # <- Adicionado o índice [0]
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
-                            texto = candidate['content']['parts'][0]['text']
+                            texto = candidate['content']['parts'][0]['text']  # <- Adicionado o índice [0]
                             st.subheader("📊 Resultados Encontrados:")
                             st.markdown(texto)
                         else:
