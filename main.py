@@ -16,18 +16,17 @@ if st.button("Buscar Informações"):
     else:
         with st.spinner("A processar..."):
             try:
-                # Remove espaços e força o texto a ficar limpo
-                texto_chave = api_key.strip()
+                # Remove espaços em branco
+                chave_bruta = api_key.strip()
                 
-                # SEgurança Máxima: Se o Streamlit injetar 'googleapis.comaq...' à força,
-                # nós removemos o texto intruso e deixamos apenas a chave pura 'aq...'
-                if "googleapis.com" in texto_chave:
-                    chave = texto_chave.replace("googleapis.com", "")
+                # Se a sua chave veio com 'googleapis.com' grudado por erro do painel, nós removemos aqui
+                if "googleapis.com" in chave_bruta:
+                    chave_final = chave_bruta.replace("googleapis.com", "")
                 else:
-                    chave = texto_chave
-
-                # Montagem direta usando APENAS a chave corrigida
-                url = f"https://googleapis.com{chave}"
+                    chave_final = chave_bruta
+                
+                # Montagem da URL com a chave 100% limpa
+                url = f"https://googleapis.com{chave_final}"
 
                 
                 payload = {
