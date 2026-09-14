@@ -6,8 +6,8 @@ st.set_page_config(page_title="Resultados Desportivos Ao Vivo", page_icon="⚽",
 st.title("⚽ Busca de Informações Desportivas em Tempo Real")
 st.write("Obtenha os resultados e notícias desportivas mais recentes.")
 
-# Campo para digitar a chave pura (Ex: AQ.ab8rn6...)
-api_key = st.text_input("AQ.Ab8RN6LRVXTnfUKdoTqVNbE1FA1T-AFq2gPfiQzNnmUBZuSAMA", type="password")
+# Campo para digitar a chave
+api_key = st.text_input("Insira a sua Chave de API:", type="password")
 query = st.text_input("O que deseja procurar?", placeholder="Ex: Resultados dos jogos de hoje")
 
 if st.button("Buscar Informações"):
@@ -16,18 +16,22 @@ if st.button("Buscar Informações"):
     else:
         with st.spinner("A processar..."):
             try:
-                # Remove espaços em branco
-                chave_bruta = api_key.strip()
+                # 1. TRATAMENTO RADICAL DA CHAVE
+                texto_bruto = api_key.strip()
                 
-                # Se a sua chave veio com 'googleapis.com' grudado por erro do painel, nós removemos aqui
-                if "googleapis.com" in chave_bruta:
-                    chave_final = chave_bruta.replace("googleapis.com", "")
+                # Procuramos apenas onde começa o prefixo real 'aq.' ou 'AIza'
+                if "aq." in texto_bruto.lower():
+                    posicao = texto_bruto.lower().find("aq.")
+                    chave_limpa = texto_bruto[posicao:]
+                elif "aiza" in texto_bruto.lower():
+                    posicao = texto_bruto.lower().find("aiza")
+                    chave_limpa = texto_bruto[posicao:]
                 else:
-                    chave_final = chave_bruta
+                    chave_limpa = texto_bruto
                 
-                # Montagem da URL com a chave 100% limpa
-                url = f"https://googleapis.com{chave_final}"
-
+                # 2. URL BASE PROTEGIDA (Sem variáveis misturadas no domínio)
+                url_base = "https://googleapis.com"
+                url_final = f"{url_base}?key={chave_limpa}"
                 
                 payload = {
                     "contents": [{
@@ -37,7 +41,8 @@ if st.button("Buscar Informações"):
                     }]
                 }
                 
-                response = requests.post(url, json=payload)
+                # 3. Envio da requisição utilizando a URL corrigida à força
+                response = requests.post(url_final, json=payload)
                 
                 if response.status_code != 200:
                     st.error(f"Erro da API do Google (Código {response.status_code})")
@@ -45,7 +50,6 @@ if st.button("Buscar Informações"):
                 else:
                     data = response.json()
                     
-                    # Leitura segura dos índices da lista de resposta do Gemini
                     if 'candidates' in data and len(data['candidates']) > 0:
                         candidate = data['candidates'][0]
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
@@ -59,3 +63,4 @@ if st.button("Buscar Informações"):
                         
             except Exception as e:
                 st.error(f"Erro no processamento: {e}")
+
