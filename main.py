@@ -1,12 +1,13 @@
 import streamlit as st
 import requests
 
+# Configuração da página do Streamlit
 st.set_page_config(page_title="Resultados Desportivos Ao Vivo", page_icon="⚽", layout="wide")
 
 st.title("⚽ Busca de Informações Desportivas em Tempo Real")
 st.write("Obtenha os resultados e notícias desportivas mais recentes.")
 
-# Campo de captura da chave de API
+# Campo para introduzir a chave de API
 api_key = st.text_input("Insira a sua Chave de API:", type="password")
 query = st.text_input("O que deseja procurar?", placeholder="Ex: Resultados do Vasco de hoje")
 
@@ -16,29 +17,30 @@ if st.button("Buscar Informações"):
     else:
         with st.spinner("A processar informações do Gemini..."):
             try:
-                # 1. TRATAMENTO DA CHAVE
+                # 1. TRATAMENTO TOTAL DA CHAVE
                 texto_bruto = api_key.strip()
                 
-                # Se o texto contiver o domínio antigo por erro, removemos aqui
+                # Se a palavra 'googleapis.com' estiver colada na chave, removemos completamente
                 if "googleapis.com" in texto_bruto:
                     chave_limpa = texto_bruto.replace("googleapis.com", "")
                 else:
                     chave_limpa = texto_bruto
                 
-                # 2. A CORREÇÃO EXATA DA URL (Com todas as barras e parâmetros obrigatórios)
-                url = f"https://googleapis.com{chave_limpa}"
+                # 2. URL FIXA E CORRETA (Evita qualquer erro de colagem de domínio)
+                url_base = "https://googleapis.com"
+                url_final = f"{url_base}?key={chave_limpa}"
                 
-                # 3. PAYLOAD ESTRUTURADO DE ACORDO COM A DOCUMENTAÇÃO
+                # 3. ESTRUTURA DE DADOS (PAYLOAD) EXIGIDA PELA API
                 payload = {
                     "contents": [{
                         "parts": [{
-                            "text": f"Você é um assistente esportivo focado em dados em tempo real. Traga informações recentes e notícias atualizadas sobre: {query}"
+                            "text": f"Você é um assistente desportivo focado em dados em tempo real. Traga informações recentes e notícias atualizadas de hoje sobre: {query}"
                         }]
                     }]
                 }
                 
-                # 4. ENVIO DA REQUISIÇÃO
-                response = requests.post(url, json=payload)
+                # 4. ENVIO DA REQUISIÇÃO DIRECTA VIA HTTP POST
+                response = requests.post(url_final, json=payload)
                 
                 if response.status_code != 200:
                     st.error(f"Erro da API do Google (Código {response.status_code})")
@@ -46,7 +48,7 @@ if st.button("Buscar Informações"):
                 else:
                     data = response.json()
                     
-                    # 5. EXTRAÇÃO ROBUSTA PROTEGIDA CONTRA ERROS DE ÍNDICE
+                    # 5. EXTRAÇÃO SEGURA DOS DADOS DO JSON (Com índices numéricos das listas)
                     if 'candidates' in data and len(data['candidates']) > 0:
                         candidate = data['candidates'][0]
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
@@ -57,7 +59,7 @@ if st.button("Buscar Informações"):
                             st.warning("A estrutura interna de conteúdo ('parts') não foi encontrada.")
                     else:
                         st.warning("Nenhum resultado foi retornado nos candidatos da API.")
-                        st.json(data) # Mostra o JSON recebido para análise caso venha vazio
+                        st.json(data)
                         
             except Exception as e:
                 st.error(f"Erro no processamento da requisição: {e}")
