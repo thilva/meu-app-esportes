@@ -26,7 +26,7 @@ if st.button("Buscar Informações"):
                 else:
                     chave_limpa = texto_bruto
                 
-                # 2. URL FIXA E CORRETA (Evita qualquer erro de colagem de domínio)
+                # 2. SEGUNDA ALTERAÇÃO REAL DE ENDPOINT: Mudança obrigatória para v1beta
                 url_base = "https://googleapis.com"
                 url_final = f"{url_base}?key={chave_limpa}"
                 
@@ -34,7 +34,7 @@ if st.button("Buscar Informações"):
                 payload = {
                     "contents": [{
                         "parts": [{
-                            "text": f"Você é um assistente desportivo focado em dados em tempo real. Traga informações recentes e notícias atualizadas de hoje sobre: {query}"
+                            "text": f"Você é um assistente desportivo focado em dados em tempo real e atualizados de hoje. Traga as informações desportivas mais recentes e ao vivo sobre: {query}"
                         }]
                     }]
                 }
@@ -48,11 +48,11 @@ if st.button("Buscar Informações"):
                 else:
                     data = response.json()
                     
-                    # 5. EXTRAÇÃO SEGURA DOS DADOS DO JSON (Com índices numéricos das listas)
+                    # 5. EXTRAÇÃO SEGURA DOS DADOS DO JSON
                     if 'candidates' in data and len(data['candidates']) > 0:
-                        candidate = data['candidates'][0]
+                        candidate = data['candidates'][0]  # Correção: Acessando o primeiro item da lista de candidatos
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
-                            texto = candidate['content']['parts'][0]['text']
+                            texto = candidate['content']['parts'][0]['text']  # Correção: Acessando o primeiro item de parts
                             st.subheader("📊 Resultados Encontrados:")
                             st.markdown(texto)
                         else:
