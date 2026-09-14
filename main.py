@@ -17,20 +17,24 @@ if st.button("Buscar Informações"):
     else:
         with st.spinner("A processar informações do Gemini..."):
             try:
-                # 1. TRATAMENTO TOTAL DA CHAVE
-                texto_bruto = api_key.strip()
+                # 1. LIMPEZA ABSOLUTA DA CHAVE
+                # Remove espaços em branco e quebras de linha invisíveis
+                chave_bruta = api_key.strip()
                 
                 # Se a palavra 'googleapis.com' estiver colada na chave, removemos completamente
-                if "googleapis.com" in texto_bruto:
-                    chave_limpa = texto_bruto.replace("googleapis.com", "")
+                if "googleapis.com" in chave_bruta:
+                    chave_limpa = chave_bruta.replace("googleapis.com", "")
                 else:
-                    chave_limpa = texto_bruto
+                    chave_limpa = chave_bruta
                 
-                # 2. SEGUNDA ALTERAÇÃO REAL DE ENDPOINT: Mudança obrigatória para v1beta
-                url_base = "https://googleapis.com"
-                url_final = f"{url_base}?key={chave_limpa}"
+                # 2. ENDPOINT ISOLADO (Sem parâmetros na string de texto)
+                url_limpa = "https://googleapis.com"
                 
-                # 3. ESTRUTURA DE DADOS (PAYLOAD) EXIGIDA PELA API
+                # 3. PASSAGEM DE PARÂMETROS PROTEGIDA
+                # O Python codifica a chave nativamente e impede o redirecionamento para '/'
+                parametros_url = {"key": chave_limpa}
+                
+                # Estrutura de dados (Payload) exigida pela API do Gemini
                 payload = {
                     "contents": [{
                         "parts": [{
@@ -39,20 +43,21 @@ if st.button("Buscar Informações"):
                     }]
                 }
                 
-                # 4. ENVIO DA REQUISIÇÃO DIRECTA VIA HTTP POST
-                response = requests.post(url_final, json=payload)
+                # 4. ENVIO SEGURO VIA HTTP POST
+                response = requests.post(url_limpa, params=parametros_url, json=payload)
                 
+                # 5. TRATAMENTO DA RESPOSTA
                 if response.status_code != 200:
                     st.error(f"Erro da API do Google (Código {response.status_code})")
-                    st.text(f"Detalhes: {response.text}")
+                    st.text(f"Detalhes do erro emitido pelo servidor:\n{response.text}")
                 else:
                     data = response.json()
                     
-                    # 5. EXTRAÇÃO SEGURA DOS DADOS DO JSON
+                    # Extração segura e estruturada utilizando índices numéricos de listas
                     if 'candidates' in data and len(data['candidates']) > 0:
-                        candidate = data['candidates'][0]  # Correção: Acessando o primeiro item da lista de candidatos
+                        candidate = data['candidates'][0]
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
-                            texto = candidate['content']['parts'][0]['text']  # Correção: Acessando o primeiro item de parts
+                            texto = candidate['content']['parts'][0]['text']
                             st.subheader("📊 Resultados Encontrados:")
                             st.markdown(texto)
                         else:
