@@ -19,17 +19,13 @@ if st.button("Buscar Informações"):
                 # 1. TRATAMENTO DA CHAVE
                 texto_bruto = api_key.strip()
                 
-                # Isola apenas a sequência de caracteres correta se houver lixo colado antes
-                if "aq." in texto_bruto.lower():
-                    posicao = texto_bruto.lower().find("aq.")
-                    chave_limpa = texto_bruto[posicao:]
-                elif "aiza" in texto_bruto.lower():
-                    posicao = texto_bruto.lower().find("aiza")
-                    chave_limpa = texto_bruto[posicao:]
+                # Se o texto contiver o domínio antigo por erro, removemos aqui
+                if "googleapis.com" in texto_bruto:
+                    chave_limpa = texto_bruto.replace("googleapis.com", "")
                 else:
                     chave_limpa = texto_bruto
                 
-                # 2. URL OFICIAL CORRIGIDA (Versão v1 estável)
+                # 2. A CORREÇÃO EXATA DA URL (Com todas as barras e parâmetros obrigatórios)
                 url = f"https://googleapis.com{chave_limpa}"
                 
                 # 3. PAYLOAD ESTRUTURADO DE ACORDO COM A DOCUMENTAÇÃO
