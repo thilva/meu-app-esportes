@@ -6,20 +6,20 @@ st.set_page_config(page_title="Resultados Desportivos Ao Vivo", page_icon="⚽",
 st.title("⚽ Busca de Informações Desportivas em Tempo Real")
 st.write("Obtenha os resultados e notícias desportivas mais recentes.")
 
-# Campo para digitar a chave
+# Campo de captura da chave de API
 api_key = st.text_input("Insira a sua Chave de API:", type="password")
-query = st.text_input("O que deseja procurar?", placeholder="Ex: Resultados dos jogos de hoje")
+query = st.text_input("O que deseja procurar?", placeholder="Ex: Resultados do Vasco de hoje")
 
 if st.button("Buscar Informações"):
     if not api_key or not query:
         st.warning("Preencha a chave de API e a pesquisa.")
     else:
-        with st.spinner("A processar..."):
+        with st.spinner("A processar informações do Gemini..."):
             try:
-                # 1. TRATAMENTO RADICAL DA CHAVE
+                # 1. TRATAMENTO DA CHAVE
                 texto_bruto = api_key.strip()
                 
-                # Procuramos apenas onde começa o prefixo real 'aq.' ou 'AIza'
+                # Isola apenas a sequência de caracteres correta se houver lixo colado antes
                 if "aq." in texto_bruto.lower():
                     posicao = texto_bruto.lower().find("aq.")
                     chave_limpa = texto_bruto[posicao:]
@@ -29,20 +29,20 @@ if st.button("Buscar Informações"):
                 else:
                     chave_limpa = texto_bruto
                 
-                # 2. URL BASE PROTEGIDA (Sem variáveis misturadas no domínio)
-                url_base = "https://googleapis.com"
-                url_final = f"{url_base}?key={chave_limpa}"
+                # 2. URL OFICIAL CORRIGIDA (Versão v1 estável)
+                url = f"https://googleapis.com{chave_limpa}"
                 
+                # 3. PAYLOAD ESTRUTURADO DE ACORDO COM A DOCUMENTAÇÃO
                 payload = {
                     "contents": [{
                         "parts": [{
-                            "text": f"Você é um assistente desportivo em tempo real. Forneça as informações desportivas mais recentes e resultados ao vivo de hoje sobre: {query}"
+                            "text": f"Você é um assistente esportivo focado em dados em tempo real. Traga informações recentes e notícias atualizadas sobre: {query}"
                         }]
                     }]
                 }
                 
-                # 3. Envio da requisição utilizando a URL corrigida à força
-                response = requests.post(url_final, json=payload)
+                # 4. ENVIO DA REQUISIÇÃO
+                response = requests.post(url, json=payload)
                 
                 if response.status_code != 200:
                     st.error(f"Erro da API do Google (Código {response.status_code})")
@@ -50,18 +50,18 @@ if st.button("Buscar Informações"):
                 else:
                     data = response.json()
                     
-                    # CORREÇÃO DA LEITURA DO JSON: Acessando os índices da lista [0]
+                    # 5. EXTRAÇÃO ROBUSTA PROTEGIDA CONTRA ERROS DE ÍNDICE
                     if 'candidates' in data and len(data['candidates']) > 0:
-                        candidate = data['candidates'][0]  # <- Adicionado o índice [0]
+                        candidate = data['candidates'][0]
                         if 'content' in candidate and 'parts' in candidate['content'] and len(candidate['content']['parts']) > 0:
-                            texto = candidate['content']['parts'][0]['text']  # <- Adicionado o índice [0]
+                            texto = candidate['content']['parts'][0]['text']
                             st.subheader("📊 Resultados Encontrados:")
                             st.markdown(texto)
                         else:
-                            st.warning("Estrutura de conteúdo não encontrada na resposta.")
+                            st.warning("A estrutura interna de conteúdo ('parts') não foi encontrada.")
                     else:
-                        st.warning("Nenhum resultado retornado.")
+                        st.warning("Nenhum resultado foi retornado nos candidatos da API.")
+                        st.json(data) # Mostra o JSON recebido para análise caso venha vazio
                         
             except Exception as e:
-                st.error(f"Erro no processamento: {e}")
-
+                st.error(f"Erro no processamento da requisição: {e}")
